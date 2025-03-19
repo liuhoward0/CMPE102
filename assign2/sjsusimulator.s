@@ -4,6 +4,8 @@
 #
 .global  main
 .data
+hexa: .byte 0
+sixteen: .long 16
 ten: .long 10
 counter: .long 0
 itoa_string: .ascii "          \n"
@@ -11,6 +13,7 @@ sjsuprompt: .ascii "(sjsu) "
 instruction: .ascii "                "
 ilen: .long 0
 alu: .long 0
+xarray: .byte '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
 .text
 main:
 #   similar to eax = write(1,"(sjsu) "
@@ -31,6 +34,10 @@ main:
     je     exit
     cmpl   $0x74697865,instruction
     je     exit
+    cmpl   $0x20786568,instruction
+    je     hex
+    cmpl   $0x20636564,instruction
+    je     dec
     cmpl   $0x20766f6d,instruction	# cmpl "mov ",instruction in hex
     je     do_mov
     cmpl   $0x20646461,instruction	# cmpl "add ",instruction in hex
@@ -46,6 +53,26 @@ main:
     cmpl   $0x20776F70,instruction      # cmpl "pow ",instruction in hex
     je     do_pow
     jmp     main
+dec:
+    movb   $0,%al
+    movb   %al,hexa
+    call   itoa
+    mov    $4,%eax
+    mov    $1,%ebx
+    mov    $itoa_string,%ecx
+    mov    $11,%edx
+    int    $0x80
+    jmp    main
+hex:
+    movb   $1,%al
+    movb   %al,hexa
+    call   itoa
+    mov    $4,%eax
+    mov    $1,%ebx
+    mov    $itoa_string,%ecx
+    mov    $11,%edx
+    int    $0x80
+    jmp    main
 do_mov:
     call   atoi
     mov    counter,%eax
@@ -176,6 +203,9 @@ bypass:
     ret
 #   Function itoa() to convert integer variable counter's value to ASCII characters, placed in variable itoa_string.
 itoa:
+    movb   hexa,%al
+    cmpb   $1,%al
+    je     itoh
 #   copy counter to %eax to prepare for division
     mov    counter,%eax
     mov    $0,%ebx
@@ -208,3 +238,34 @@ done:
 negation:
     negl   counter
     ret
+itoh:
+#   copy counter to %eax to prepare for division
+    mov    counter,%eax
+#   copy 10 spaces to itoa_string
+    movl   $0x20202020,itoa_string
+    movl   $0x20202020,itoa_string+4
+    movw   $0x2020,itoa_string+8
+#   point %edi index register to the last byte of itoa_string, think:
+#   char *itoa_string="    ";
+#   char *edi = &itoa_string[9];
+    lea    itoa_string+9,%edi
+itoh_loop:
+    mov    $0,%edx
+    idivl  sixteen
+    lea    xarray,%esi
+hex_loop:
+    cmpl   $0,%edx
+    jle    next
+    inc    %esi
+    dec    %edx
+    jmp    hex_loop
+next:
+    movb   (%esi),%bl
+    movb   %bl,(%edi)	# think: *(edi) = '0'
+    dec    %edi		# think: edi--;
+    cmpl   $0,%eax
+    jg     itoh_loop
+    movb   $'x',(%edi)
+    dec    %edi
+    movb   $'0',(%edi)
+    ret			# ret: returns/jumps to the instruction after CALL itoa
