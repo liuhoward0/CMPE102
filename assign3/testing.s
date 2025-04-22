@@ -5,16 +5,18 @@
 #
 .global  main
 .data
+two: .long 2
 ten: .long 10
 base: .long 10
 counter: .long 0
 minus: .ascii "-"
 itoa_string: .ascii "          \n"
+itob_string: .ascii "                                  \n"
 sjsuprompt: .ascii "(sjsu) "
 sjsumov: .ascii "mov\n"
 sjsuadd: .ascii "add\n"
 sjsumul: .ascii "mul\n"
-instruction: .ascii "                "
+instruction: .ascii "                                  "
 ilen: .long 0
 alu: .long 0
 .text
@@ -59,35 +61,49 @@ main:
     je     do_xor
     cmpw   $0x726F,instruction		# "or "
     je     do_or
+    cmpl   $0x20646E61,instruction	# "and "
+    je     do_and
+    jmp    main
+print_reg:
+    call   itoa
+    mov    $4,%eax
+    mov    $1,%ebx
+    incl   %edi
+    mov    %edi,%ecx
+    lea    itoa_string+11,%edx
+    subl   %edi,%edx
+    int    $0x80
+    mov    alu,%eax
+    call   itob
+    mov    $4,%eax
+    mov    $1,%ebx
+    incl   %edi
+    mov    %edi,%ecx
+    lea    itob_string+35,%edx
+    subl   %edi,%edx
+    int    $0x80
     jmp    main
 do_or:
     call   atoi
     mov    alu,%eax
     or     %eax,counter
+    mov    counter,%eax
     mov    %eax,alu
-    call   itoa
-    mov    $4,%eax
-    mov    $1,%ebx
-    incl   %edi
-    mov    %edi,%ecx
-    lea    itoa_string+11,%edx
-    subl   %edi,%edx
-    int    $0x80
-    jmp    main
+    call    print_reg
+do_and:
+    call   atoi
+    mov    alu,%eax
+    and    %eax,counter
+    mov    counter,%eax
+    mov    %eax,alu
+    call    print_reg
 do_xor:
     call   atoi
     mov    alu,%eax
     xor    %eax,counter
+    mov    counter,%eax
     mov    %eax,alu
-    call   itoa
-    mov    $4,%eax
-    mov    $1,%ebx
-    incl   %edi
-    mov    %edi,%ecx
-    lea    itoa_string+11,%edx
-    subl   %edi,%edx
-    int    $0x80
-    jmp    main
+    call    print_reg
 do_sar:
     call   atoi
     movb   counter,%cl
@@ -95,15 +111,7 @@ do_sar:
     sar    %cl,%eax
     mov    %eax,alu
     mov    %eax,counter
-    call   itoa
-    mov    $4,%eax
-    mov    $1,%ebx
-    incl   %edi
-    mov    %edi,%ecx
-    lea    itoa_string+11,%edx
-    subl   %edi,%edx
-    int    $0x80
-    jmp    main
+    call    print_reg
 do_sal:
     call   atoi
     movb   counter,%cl
@@ -111,30 +119,14 @@ do_sal:
     sal    %cl,%eax
     mov    %eax,alu
     mov    %eax,counter
-    call   itoa
-    mov    $4,%eax
-    mov    $1,%ebx
-    incl   %edi
-    mov    %edi,%ecx
-    lea    itoa_string+11,%edx
-    subl   %edi,%edx
-    int    $0x80
-    jmp    main
+    call    print_reg
 do_not:
     call   atoi
     mov    alu,%eax
     not    %eax
     mov    %eax,alu
     mov    %eax,counter
-    call   itoa
-    mov    $4,%eax
-    mov    $1,%ebx
-    incl   %edi
-    mov    %edi,%ecx
-    lea    itoa_string+11,%edx
-    subl   %edi,%edx
-    int    $0x80
-    jmp    main
+    call    print_reg
 do_rol:
     call   atoi
     movb   counter,%cl
@@ -142,15 +134,7 @@ do_rol:
     rol    %cl,%eax
     mov    %eax,alu
     mov    %eax,counter
-    call   itoa
-    mov    $4,%eax
-    mov    $1,%ebx
-    incl   %edi
-    mov    %edi,%ecx
-    lea    itoa_string+11,%edx
-    subl   %edi,%edx
-    int    $0x80
-    jmp    main
+    call    print_reg
 do_ror:
     call   atoi
     movb   counter,%cl
@@ -158,15 +142,7 @@ do_ror:
     ror    %cl,%eax
     mov    %eax,alu
     mov    %eax,counter
-    call   itoa
-    mov    $4,%eax
-    mov    $1,%ebx
-    incl   %edi
-    mov    %edi,%ecx
-    lea    itoa_string+11,%edx
-    subl   %edi,%edx
-    int    $0x80
-    jmp    main
+    call    print_reg
 do_dec:
     movl   $10,base
     jmp     main
@@ -177,60 +153,28 @@ do_mov:
     call   atoi
     mov    counter,%eax
     mov    %eax,alu
-    call   itoa
-    mov    $4,%eax
-    mov    $1,%ebx
-    incl   %edi
-    mov    %edi,%ecx
-    lea    itoa_string+11,%edx
-    subl   %edi,%edx
-    int    $0x80
-    jmp    main
+    call    print_reg
 do_add:
     call   atoi
     mov    counter,%eax
     add    %eax,alu
     movl   alu, %eax
     movl   %eax,counter
-    call   itoa
-    mov    $4,%eax
-    mov    $1,%ebx
-    incl   %edi
-    mov    %edi,%ecx
-    lea    itoa_string+11,%edx
-    subl   %edi,%edx
-    int    $0x80
-    jmp    main
+    call   print_reg
 do_sub:
     call   atoi
     mov    counter,%eax
     sub    %eax,alu
     movl   alu, %eax
     movl   %eax,counter
-    call   itoa
-    mov    $4,%eax
-    mov    $1,%ebx
-    incl   %edi
-    mov    %edi,%ecx
-    lea    itoa_string+11,%edx
-    subl   %edi,%edx
-    int    $0x80
-    jmp    main
+    call    print_reg
 do_mul:
     call   atoi
     mov    counter,%eax
     imul    alu,%eax
     mov    %eax,alu
     mov    %eax,counter
-    call   itoa
-    mov    $4,%eax
-    mov    $1,%ebx
-    incl   %edi
-    mov    %edi,%ecx
-    lea    itoa_string+11,%edx
-    subl   %edi,%edx
-    int    $0x80
-    jmp    main
+    call    print_reg
 # exit here
     mov    $1,%eax
     mov    $0,%ebx
@@ -252,7 +196,32 @@ atoi_loop:
     cmpl   $4,%esi			# Have we reached index 4 (the space) of "mov 125"
     jge    atoi_loop			# not yet, jump back
     ret
-#   Function itoa() to convert integer variable counter's value to ASCII characters, placed in variable itoa_string.
+itob:
+    mov    counter,%eax
+#   copy 10 spaces to itoa_string
+    movl   $0x20202020,itob_string
+    movl   $0x20202020,itob_string+4
+    movl   $0x20202020,itob_string+8
+    movl   $0x20202020,itob_string+12
+    movl   $0x20202020,itob_string+16
+    movl   $0x20202020,itob_string+20
+    movl   $0x20202020,itob_string+24
+    movl   $0x20202020,itob_string+28
+    movw   $0x2020,itob_string+32
+    lea    itob_string+33,%edi
+    movl   $32,%ecx
+itob_loop:
+    mov    $0,%edx
+    idivl  two		# divide by 16
+    addl   $'0',%edx	# convert from binary 0 (or 1-9) to '0' (or '1'-'9')
+    movb   %dl,(%edi)	# think: *(edi) = '0'
+    dec    %edi		# think: edi--;
+    loop   itob_loop # decrement ecx, if not 0, jump to itob_loop
+    movb   $'b',(%edi)
+    dec    %edi
+    movb   $'0',(%edi)
+    dec    %edi
+    ret#   Function itoa() to convert integer variable counter's value to ASCII characters, placed in variable itoa_string.
 itoa:
 #   copy counter to %eax to prepare for division
     mov    counter,%eax
