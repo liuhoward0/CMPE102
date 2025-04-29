@@ -44,7 +44,7 @@ skip2:
     jmp  collectionloop
 
 visualization:
-    xor  %ebx,%ebx		#   initialize ebx to act as 'int j' for outerloop
+    movl $9,%ebx		#   initialize ebx to act as 'int j' for outerloop
     lea  arr,%esi		#   esi = &arr
     
 outerloop:
@@ -89,9 +89,9 @@ done:
     movb $0x0a,(%edi,%ecx,1)	#   display + '\n'
     sub  $4,%edi		#   makes sure whole display is included
     push %edi			#   " 10|***..."  ->  " 10|***..."
-    inc  %ebx			#        ^        ->   ^
-    cmpl $10,%ebx		#        %edi          %edi
-    jl   outerloop
+    dec  %ebx			#        ^        ->   ^
+    cmpl $0,%ebx		#        %edi          %edi
+    jge  outerloop
 
     xor  %edi,%edi		#   prepares edi for counter usage as reg ecx is in use for write
 printloop:
