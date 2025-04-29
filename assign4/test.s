@@ -11,7 +11,7 @@ collectionloop:			#   collection loop responsible for taking user input
     mov $3,%eax
     mov $0,%ebx
     mov $input,%ecx
-    mov $inputlen,%edx
+    mov $4,%edx
     int $0x80
 				#   eax = atoi(input)
     lea input,%eax
@@ -108,11 +108,12 @@ printloop:
     cmpl $10,%edi
     jl   printloop
 
+vertical_display:
     subl $40,%esp		#   retrieves addresses of allocated displays
     movl %esp,%esi		#   esi -> top of displays
 
     movl max,%ebx		#   initializing ebx as j for outerloop
-    addl $5,%ebx		#   for (j = max + 4; j >= 0; j--)
+    addl $3,%ebx		#   for (j = max + 3; j >= 0; j--)
 
 verticle_outerloop:
     movl $11,%eax		#   eax -> malloc(bin amount + \n)
@@ -141,7 +142,8 @@ verticle_innerloop:
     jge  verticle_outerloop
 
     movl max,%edi
-    addl $5,%edi
+    addl $3,%edi
+
 print_vertical_loop:
     movl $11,%edx
 
