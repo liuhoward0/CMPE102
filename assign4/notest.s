@@ -24,14 +24,15 @@ collectionloop:			#   collection loop responsible for taking user input
     jl   visualization
 
     movl $inputlen,%ecx		#   divide eax by 10, use it as index with exceptions
-    cdq
+    cdq				#   following lines assigns correct bins
     idiv %ecx
+    cmpl $0,%edx
+    jg   skip
+    cmpl $0,%eax
+    je   skip
+    dec  %eax
+skip:
     lea  arr,%edi		#   %edi = &arr
-    cmpl $10,%eax
-    jl   normal
-    movl $9,%eax
-
-normal:
     addl $1,(%edi,%eax,4)
 
     movl max,%ebx		#   updating max
@@ -147,7 +148,7 @@ continue:
     push max
     addl $3,(%esp)
     cmpl (%esp),%ebx		#   end of outerloop
-    jle   verticle_outerloop
+    jl   verticle_outerloop
 
     movl max,%edi
     addl $3,%edi
