@@ -111,9 +111,9 @@ vertical_display:
     subl $40,%esp		#   retrieves addresses of allocated displays
     movl %esp,%esi		#   esi -> top of displays
 
-    xor  %ebx,%ebx
+    xor  %ebx,%ebx		#   for (j = 0; j < max + 3; j++)
 
-    push $1234
+    push $1234			#   a filler for the "pop" that makes outerloop work (see end of outerloop)
 verticle_outerloop:
     addl $4,%esp
     movl $11,%eax		#   eax -> malloc(bin amount + \n)
@@ -127,7 +127,7 @@ verticle_innerloop:
     movl (%esi,%ecx,4),%edi	#   edi -> display stack[ecx] or display stack[i]
     movb (%edi,%ebx,1),%dl	#   eax[0-10] = display stack[ecx][ebx] or edi[ebx] or edi[j]
 
-    cmpb $0x7c,%dl
+    cmpb $0x7c,%dl		#   changing '|' into '-' for a vertical display of the separation line
     jne  continue
     movb $'-',%dl
 
@@ -144,9 +144,9 @@ continue:
     push %eax
 
     inc  %ebx
-    push max
+    push max			#   end of outerloop
     addl $3,(%esp)
-    cmpl (%esp),%ebx		#   end of outerloop
+    cmpl (%esp),%ebx
     jle   verticle_outerloop
 
     movl max,%edi
@@ -164,7 +164,6 @@ print_vertical_loop:
     addl $4,%esp		#   pops the address of allocated displays
     cmpl $0,%edi
     jge  print_vertical_loop
-
 
     mov $1,%eax			#   exit
     mov $0,%ebx
